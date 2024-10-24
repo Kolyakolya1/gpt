@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Ai;
 
 use App\Http\Controllers\Controller;
-use App\Services\Ai\QueryParserService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
@@ -13,9 +12,8 @@ class AiController extends Controller
     protected $parser;
     protected $client;
 
-    public function __construct(QueryParserService $parser)
+    public function __construct()
     {
-        $this->parser = $parser;
         $this->client = new Client([
                                        'base_uri' => 'https://api.openai.com/v1/',
                                        'headers' => [
