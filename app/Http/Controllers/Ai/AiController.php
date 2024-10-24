@@ -26,42 +26,52 @@ class AiController extends Controller
     public function sendAudio(Request $request)
     {
         try {
-
             $transcription = $request->input('transcription');
             $type = $request->input('button');
             $inputLanguage = $request->input('inputLanguage');
             $playbackLanguage = $request->input('playbackLanguage');
 
-                if ($type == 'speak_with_chatgpt') {
-                    if ($playbackLanguage == 'ru-RU' || $playbackLanguage == 'uk-UA' || $playbackLanguage == 'sk-SK') {
-                        $playbackLanguage = 'ru-RU';
-                        return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Ответь на заданный вопрос на русском:');
-                    } elseif ($playbackLanguage == 'en-US') {
-                        return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Answer the given question in English:');
-                    } elseif ($playbackLanguage == 'de-DE') {
-                        return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Beantworte die gestellte Frage auf Deutsch:');
-                    }
+            if ($type == 'speak_with_chatgpt') {
+                if ($playbackLanguage == 'ru-RU' || $playbackLanguage == 'uk-UA' || $playbackLanguage == 'sk-SK') {
+                    $playbackLanguage = 'ru-RU';
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Ответь на заданный вопрос на русском:');
+                } elseif ($playbackLanguage == 'en-US') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Answer the given question in English:');
+                } elseif ($playbackLanguage == 'de-DE') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Beantworte die gestellte Frage auf Deutsch:');
+                }
+            } elseif ($type == 'text_with_chatgpt') {
+                if ($playbackLanguage == 'ru-RU') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Ответь на заданный вопрос на русском:');
+                } elseif ($playbackLanguage == 'uk-UA') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Відповісти на задане питання українською:');
+                } elseif ($playbackLanguage == 'en-US') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Answer the given question in English:');
+                } elseif ($playbackLanguage == 'de-DE') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Beantworte die gestellte Frage auf Deutsch:');
+                } elseif ($playbackLanguage == 'sk-SK') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Odpovedzte na položenú otázku po slovensky:');
+                }
             }elseif ($type == 'speak_with_chatgpt_hd') {
-                    if ($playbackLanguage == 'ru-RU') {
-                        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Ответь на заданный вопрос на русском:');
-                        return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
-                    } elseif ($playbackLanguage == 'uk-UA') {
-                        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Відповісти на задане питання українською:');
-                        return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
-                    }  elseif ($playbackLanguage == 'en-US') {
-                        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Answer the given question in English:');
-                        return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
-                    } elseif ($playbackLanguage == 'de-DE') {
-                        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage,'Beantworte die gestellte Frage auf Deutsch:');
-                        return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
-                    } elseif ($playbackLanguage == 'sk-SK') {
-                        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Odpovedzte na položenú otázku po slovensky:');
-                        return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
-                    }
+                if ($playbackLanguage == 'ru-RU') {
+                    $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Ответь на заданный вопрос на русском:');
+                    return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
+                } elseif ($playbackLanguage == 'uk-UA') {
+                    $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Відповісти на задане питання українською:');
+                    return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
+                } elseif ($playbackLanguage == 'en-US') {
+                    $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Answer the given question in English:');
+                    return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
+                } elseif ($playbackLanguage == 'de-DE') {
+                    $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Beantworte die gestellte Frage auf Deutsch:');
+                    return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
+                } elseif ($playbackLanguage == 'sk-SK') {
+                    $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Odpovedzte na položenú otázku po slovensky:');
+                    return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
+                }
             }
 
             return response()->json(['text' => $transcription], 200);
-
         } catch (GuzzleException $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -82,10 +92,10 @@ class AiController extends Controller
         $interpretedData = $data['choices'][0]['message']['content'] ?? '';
 
         return response()->json([
-            'question' => $transcription,
-            'text' => $interpretedData,
-            'button' => $type,
-            'playback_language' => $playbackLanguage
+                                    'question' => $transcription,
+                                    'text' => $interpretedData,
+                                    'button' => $type,
+                                    'playback_language' => $playbackLanguage
                                 ], 200);
     }
 
@@ -112,9 +122,9 @@ class AiController extends Controller
 
         $audio_url = url('storage/audio_file.mp3') . '?' . uniqid();
         return response()->json([
-            'audio_url' => $audio_url,
-            'text' => $interpretedData,
-            'button' => $type,
+                                    'audio_url' => $audio_url,
+                                    'text' => $interpretedData,
+                                    'button' => $type,
 
                                 ], 200);
     }
