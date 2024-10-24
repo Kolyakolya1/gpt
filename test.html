@@ -1,0 +1,121 @@
+<form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" method="post" action="{{ route('auth_user') }}">
+    @csrf
+
+    <!--begin::Heading-->
+    <div class="text-center mb-10">
+        <!--begin::Title-->
+        <h1 class="text-dark mb-3">Sign In</h1>
+        <!--end::Title-->
+    </div>
+    <!--begin::Heading-->
+
+    @if ($errors->any())
+    <div class="alert alert-danger d-flex align-items-center p-5 mb-10">
+        <!--begin::Svg Icon | path: icons/duotune/general/gen048.svg-->
+        <span class="svg-icon svg-icon-2hx svg-icon-danger me-4">
+														<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+															<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="black"></path>
+															<path d="M10.5606 11.3042L9.57283 10.3018C9.28174 10.0065 8.80522 10.0065 8.51412 10.3018C8.22897 10.5912 8.22897 11.0559 8.51412 11.3452L10.4182 13.2773C10.8099 13.6747 11.451 13.6747 11.8427 13.2773L15.4859 9.58051C15.771 9.29117 15.771 8.82648 15.4859 8.53714C15.1948 8.24176 14.7183 8.24176 14.4272 8.53714L11.7002 11.3042C11.3869 11.6221 10.874 11.6221 10.5606 11.3042Z" fill="black"></path>
+														</svg>
+													</span>
+        <!--end::Svg Icon-->
+        <div class="d-flex flex-column">
+            <h4 class="mb-1 text-danger">Auth error</h4>
+            @foreach ($errors->all() as $error)
+            <span>{{ $error }}</span>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!--begin::Input group-->
+    <div class="fv-row mb-7">
+        <!--begin::Label-->
+        <label class="form-label fs-6 fw-bolder text-dark">Email</label>
+        <!--end::Label-->
+        <!--begin::Input-->
+        <input class="form-control form-control-lg form-control-solid" type="text" name="email" autocomplete="off" />
+        <!--end::Input-->
+    </div>
+    <!--end::Input group-->
+    <!--begin::Input group-->
+    <div class="fv-row mb-7">
+        <!--begin::Wrapper-->
+        <div class="d-flex flex-stack mb-2">
+            <!--begin::Label-->
+            <label class="form-label fw-bolder text-dark fs-6 mb-0">Password</label>
+            <!--end::Label-->
+            <!--begin::Link-->
+            <a href="../../demo1/dist/authentication/layouts/basic/password-reset.html" class="link-primary fs-6 fw-bolder">Forgot Password ?</a>
+            <!--end::Link-->
+        </div>
+        <!--end::Wrapper-->
+        <!--begin::Input-->
+        <input class="form-control form-control-lg form-control-solid" type="password" name="password" autocomplete="off" />
+        <!--end::Input-->
+    </div>
+    <div class="fv-row mb-7">
+        <!--begin::Wrapper-->
+        <div class="d-flex flex-stack mb-2">
+            <div class="form-check form-check-custom form-check-solid">
+                <input class="form-check-input" name="remember_me" type="checkbox" value="" id="flexCheckDefault"/>
+                <label class="form-check-label" for="flexCheckDefault">
+                    Remember me
+                </label>
+            </div>
+        </div>
+    </div>
+    <!--end::Input group-->
+    <!--begin::Actions-->
+    <div class="text-center">
+        <!--begin::Submit button-->
+        <button class="w-100 btn btn-lg btn-primary mb-4" id="kt_sign_in_submit" type="submit">Sign in</button>
+        <div class="text-center text-muted text-uppercase fw-bolder mb-5">or</div>
+        <a href="{{ route('authentication') }}" class="btn btn-flex flex-center btn-light btn-lg w-100 mb-5">
+            <img alt="Logo" src="assets/media/logos/big-logo.svg" class="h-20px me-3">
+            Continue with EscapeID
+        </a>
+
+        <!--end::Submit button-->
+    </div>
+    <!--end::Actions-->
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--begin::Input group=-->
+<div class="fv-row mb-8 fv-plugins-icon-container">
+    <!--begin::Email-->
+    <input type="text" placeholder="Email" name="email" autocomplete="off" class="form-control bg-transparent">
+    <!--end::Email-->
+    <div class="fv-plugins-message-container invalid-feedback"></div></div>
+<!--end::Input group=-->
+<div class="fv-row mb-3 fv-plugins-icon-container">
+    <!--begin::Password-->
+    <input type="password" placeholder="Password" name="password" autocomplete="off" class="form-control bg-transparent">
+    <!--end::Password-->
+    <div class="fv-plugins-message-container invalid-feedback"></div></div>
+<!--end::Input group=-->
+<!--begin::Wrapper-->
+<div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
+    <div></div>
+    <!--begin::Link-->
+    <a href="#" class="link-primary">Forgot Password ?</a>
+    <!--end::Link-->
+</div>
+<!--end::Wrapper-->
+<!--begin::Submit button-->
+<div class="d-grid mb-10">
+    <button class="w-100 btn btn-lg btn-primary mb-4" id="kt_sign_in_submit" type="submit">Sign in</button>
+</div>
+<!--end::Submit button-->

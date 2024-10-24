@@ -1,0 +1,28 @@
+id: 50912
+name: apollo
+environments:
+    staging:
+        memory: 1024
+        cli-memory: 512
+        runtime: docker
+        docker-build-args:
+          VERSION: php82
+        octane: true
+        database: apollo-db
+        database-proxy: true
+        build:
+            - 'composer install --no-dev'
+#            - 'COMPOSER_MIRROR_PATH_REPOS=1 composer install --no-dev'
+            - 'php artisan event:cache'
+            - 'npm ci && npm run prod && rm -rf node_modules'
+        deploy:
+                - 'php artisan migrate --force'
+    production:
+        domain: nowayoutescape.at
+        memory: 1024
+        cli-memory: 512
+        runtime: 'php-8.2:al2'
+        octane: true
+        build:
+            - 'composer install --no-dev'
+            - 'php artisan event:cache'
