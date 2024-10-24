@@ -28,9 +28,10 @@
             </select>
         </div>
         <div class="d-flex flex-column gap-3">
+            <button id="text_with_chatgpt" class="btn btn-success btn-lg recordButton" data-action="text_with_chatgpt">Chat with ChatGpt (текст)</button>
             <button id="speak_with_chatgpt" class="btn btn-warning btn-lg recordButton" data-action="speak_with_chatgpt">Chat with ChatGpt</button>
             <button id="speak_with_chatgpt_hd" class="btn btn-info btn-lg recordButton" data-action="speak_with_chatgpt_hd">Chat with ChatGpt HD</button>
-            <button id="stop_playback" class="btn btn-danger btn-lg" data-action="stop_playback" disabled>Stop Playback</button>
+            <button id="stop_playback" class="btn btn-danger btn-lg" data-action="stop_playback" disabled>Остановить воспроизведение</button>
         </div>
 
         <div class="chats scroll-y me-n5 pe-5 h-300px h-lg-auto mt-4" style="max-height: 800px; overflow-y: auto;">
@@ -46,7 +47,8 @@
             let voices = [];
             let currentButton = null;
             let groupIndex = 0;
-            let currentAudio = null; // Переменная для хранения текущего аудио
+            let currentAudio = null;
+            let isSpeaking = false;
 
             // Проверка поддержки Web Speech API
             if ('webkitSpeechRecognition' in window) {
@@ -56,52 +58,49 @@
                 recognition.lang = $('#spokenLanguageSelect').val();
                 recognition.maxAlternatives = 5;
 
-                recognition.onstart = function() {
+                recognition.onstart = function () {
                     console.log('Началась запись');
                 };
 
-                recognition.onresult = function(event) {
-                    const transcript = event.results[event.resultIndex][0].transcript;
-                    console.log('Распознанный текст: ', transcript);
+                recognition.onresult = function (event) {
+                    if(isSpeaking === false) {
+                        const transcript = event.results[event.resultIndex][0].transcript.trim(); // Удаляем лишние пробелы
+                        console.log('Распознанный текст: ', transcript);
 
-                    // Добавляем текст в чат
-                    appendUserMessage(transcript);
+                        if (transcript.length < 3) {
+                            console.log('Распознанный текст слишком короткий, запрос не будет отправлен.');
+                            return; // Не отправляем запрос
+                        }
 
-                    // Проверяем, активна ли страница
-                    if (!document.hidden) {
-                        // Сохраняем текст в буфер обмена, если страница активна
-                        navigator.clipboard.writeText(transcript).then(function() {
-                            console.log('Текст успешно скопирован в буфер обмена.');
-                        }).catch(function(err) {
-                            console.log('Документ не в фокусе, пропускаем копирование в буфер обмена.');
-                        });
-                    } else {
-                        console.log('Документ не в фокусе, пропускаем копирование в буфер обмена.');
+                        // Добавляем текст в чат
+                        appendUserMessage(transcript);
+
+                        // Проверяем, активна ли страница
+                        if (!document.hidden) {
+                            // Сохраняем текст в буфер обмена, если страница активна
+                            navigator.clipboard.writeText(transcript).then(function () {
+                                console.log('Текст успешно скопирован в буфер обмена.');
+                            }).catch(function (err) {
+                                console.log('Документ не в фокусе, пропускаем копирование в буфер обмена.');
+                            });
+                        }
+
+                        // Отправляем распознанный текст на сервер
+                        sendTranscriptionToServer(transcript, currentButton);
                     }
-
-                    // Отправляем распознанный текст на сервер
-                    sendTranscriptionToServer(transcript, currentButton);
                 };
 
-                recognition.onerror = function(event) {
+                recognition.onerror = function (event) {
                     console.error('Ошибка распознавания: ', event.error);
-
-                    // Перезапуск при ошибке "no-speech", не сбрасываем кнопку
-                    if (event.error === 'no-speech') {
-                        console.log('Не обнаружена речь, перезапуск распознавания.');
-                        restartRecognition();  // Перезапуск распознавания
-                    } else {
-                        resetButtons();  // Сброс только при других ошибках
-                    }
                 };
 
-                recognition.onend = function() {
-                    // Перезапуск, если завершено, но нужно продолжать слушать
-                    if (isListening && !document.hidden) {
+                recognition.onend = function () {
+                    if (isListening && !isSpeaking) {
+                        console.log('Попытка перезапуска распознавания');
                         try {
                             recognition.start();
                         } catch (e) {
-                            console.log("Ошибка при перезапуске:", e);
+                            console.error("Ошибка при перезапуске:", e);
                         }
                     } else {
                         resetButtons();  // Сброс только если не нужно продолжать слушать
@@ -111,37 +110,49 @@
                 alert("Ваш браузер не поддерживает Web Speech API для автоматической записи.");
             }
 
-            // Клик по первой кнопке
-            $('#speak_with_chatgpt').on('click', function() {
-                currentButton = 'speak_with_chatgpt';
+            // Клик по кнопке для отправки текста без озвучивания
+            $('#text_with_chatgpt').on('click', function () {
+                currentButton = 'text_with_chatgpt';
                 handleRecordButtonClick(this, currentButton);
             });
 
             // Клик по второй кнопке
-            $('#speak_with_chatgpt_hd').on('click', function() {
+            $('#speak_with_chatgpt').on('click', function () {
+                currentButton = 'speak_with_chatgpt';
+                handleRecordButtonClick(this, currentButton);
+            });
+
+            // Клик по третей кнопке
+            $('#speak_with_chatgpt_hd').on('click', function () {
                 currentButton = 'speak_with_chatgpt_hd';
                 handleRecordButtonClick(this, currentButton);
             });
 
             // Клик по кнопке "Остановить воспроизведение"
-            $('#stop_playback').on('click', function() {
+            $('#stop_playback').on('click', function () {
                 stopPlayback();
             });
 
             // Функция для обработки нажатия на кнопку
             function handleRecordButtonClick(button, action) {
                 if (isListening) {
+                    console.log('Остановка распознавания');
                     recognition.stop();
                     isListening = false;
                     resetButton(button);
                 } else {
                     if (recognition) {
                         recognition.lang = $('#spokenLanguageSelect').val();
+                        console.log('Запуск распознавания для языка:', recognition.lang);
                         try {
-                            recognition.start();
-                            isListening = true;
-                            $(button).data('original-text', $(button).html());
-                            $(button).html('🕗 Listening...');
+                            if (!isSpeaking) { // Проверка, идет ли озвучивание
+                                recognition.start();
+                                isListening = true;
+                                $(button).data('original-text', $(button).html());
+                                $(button).html('🕗 Listening...');
+                            } else {
+                                console.log('Не могу запустить распознавание, идет озвучивание.');
+                            }
                         } catch (e) {
                             console.log('Ошибка при запуске распознавания:', e);
                         }
@@ -153,6 +164,7 @@
             function sendTranscriptionToServer(transcription, action) {
                 const inputLanguage = $('#spokenLanguageSelect').val();
                 const playbackLanguage = $('#languageSelect').val();
+                console.log(`Отправка текста на сервер: ${transcription}`);
 
                 $.ajax({
                     url: '/send',
@@ -164,11 +176,11 @@
                         button: action,
                         _token: $('input[name="_token"]').val()
                     },
-                    success: function(response) {
+                    success: function (response) {
                         console.log("Результат сервера: ", response);
                         handleServerResponse(response, action);
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error("Ошибка при отправке данных на сервер: ", error);
                     }
                 });
@@ -177,12 +189,18 @@
             // Обрабатываем ответ от сервера
             function handleServerResponse(data, button) {
                 switch (button) {
+                    case 'text_with_chatgpt':
+                        appendBotMessage(data.text);
+                        isSpeaking = false;
+                        break;
                     case 'speak_with_chatgpt':
                         appendBotMessage(data.text);
+                        isSpeaking = true; // Устанавливаем, что сейчас идет озвучивание
                         speakText(data.text, button, data.playback_language);
                         break;
                     case 'speak_with_chatgpt_hd':
                         appendBotMessage(data.text);
+                        isSpeaking = true; // Устанавливаем, что сейчас идет озвучивание
                         speakTextHD(data.audio_url, button);
                         break;
                     default:
@@ -240,7 +258,7 @@
 
             // Сброс всех кнопок
             function resetButtons() {
-                $('.recordButton').each(function() {
+                $('.recordButton').each(function () {
                     resetButton(this);
                 });
                 isListening = false;
@@ -248,8 +266,9 @@
 
             // Воспроизведение текста с помощью Web Speech API
             function speakText(text, button, lang = 'ru-RU') {
+                console.log('Начало озвучивания текста:', text);
                 if (voices.length === 0) {
-                    window.speechSynthesis.onvoiceschanged = function() {
+                    window.speechSynthesis.onvoiceschanged = function () {
                         voices = window.speechSynthesis.getVoices();
                         speakText(text, button, lang);
                     };
@@ -266,25 +285,34 @@
                 }
 
                 window.speechSynthesis.speak(utterance);
-
-                // Активируем кнопку остановки воспроизведения
                 $('#stop_playback').prop('disabled', false);
-
-                utterance.onend = function() {
+                // Отключаем распознавание во время озвучивания
+                isSpeaking = true;
+                utterance.onend = function () {
+                    console.log('Озвучивание завершено');
                     $('#stop_playback').prop('disabled', true); // Деактивируем кнопку после окончания
+                    isSpeaking = false; // Включаем обратно распознавание
+                    if (isListening && !isSpeaking) { // Проверка состояния перед запуском
+                        recognition.start(); // Возобновляем распознавание
+                    }
                 };
             }
 
             // Воспроизведение HD-звука
             function speakTextHD(audioUrl, button) {
+                console.log('Начало воспроизведения HD-звука:', audioUrl);
                 currentAudio = new Audio(audioUrl);
                 currentAudio.play();
-
-                // Активируем кнопку остановки воспроизведения
                 $('#stop_playback').prop('disabled', false);
-
-                currentAudio.onended = function() {
+                // Отключаем распознавание во время озвучивания
+                isSpeaking = true;
+                currentAudio.onended = function () {
+                    console.log('Воспроизведение HD-звука завершено');
                     $('#stop_playback').prop('disabled', true); // Деактивируем кнопку после окончания
+                    isSpeaking = false; // Включаем обратно распознавание
+                    if (isListening && !isSpeaking) { // Проверка состояния перед запуском
+                        recognition.start(); // Возобновляем распознавание
+                    }
                 };
             }
 
@@ -300,10 +328,11 @@
                 }
 
                 $('#stop_playback').prop('disabled', true); // Деактивируем кнопку после остановки
+                isSpeaking = false;
             }
 
             // Отслеживание переключения вкладок
-            document.addEventListener('visibilitychange', function() {
+            document.addEventListener('visibilitychange', function () {
                 if (!document.hidden && isListening) {
                     try {
                         recognition.start();
@@ -312,6 +341,6 @@
                     }
                 }
             });
-        });
+        })
     </script>
 @endsection
