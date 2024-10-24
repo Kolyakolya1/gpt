@@ -61,8 +61,14 @@
                 };
 
                 recognition.onresult = function(event) {
-                    const transcript = event.results[event.resultIndex][0].transcript;
+                    const transcript = event.results[event.resultIndex][0].transcript.trim(); // Удаляем лишние пробелы
                     console.log('Распознанный текст: ', transcript);
+
+                    // Проверка длины распознанного текста
+                    if (transcript.length < 3) {
+                        console.log('Распознанный текст слишком короткий, запрос не будет отправлен.');
+                        return; // Не отправляем запрос
+                    }
 
                     // Добавляем текст в чат
                     appendUserMessage(transcript);
@@ -82,6 +88,7 @@
                     // Отправляем распознанный текст на сервер
                     sendTranscriptionToServer(transcript, currentButton);
                 };
+
 
                 recognition.onerror = function(event) {
                     console.error('Ошибка распознавания: ', event.error);
