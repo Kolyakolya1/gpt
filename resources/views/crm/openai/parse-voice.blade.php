@@ -1,37 +1,69 @@
 @extends('crm.layout')
 @section('headerStyles')
-
+<style>
+    #errorMessages {
+        display: block !important;
+        visibility: visible !important;
+        color: red;
+        font-size: 1.5rem;
+    }
+</style>
 @endsection
 
 @section('content')
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
     <div class="container mt-4">
-        <div class="mb-3">
-            <label for="spokenLanguageSelect" class="form-label">Select the language you speak:</label>
-            <select id="spokenLanguageSelect" class="form-select">
-                <option value="ru-RU">Russian</option>
-                <option value="uk-UA">Ukrainian</option>
-                <option value="en-US">English</option>
-                <option value="de-DE">German</option>
-                <option value="sk-SK">Slovak</option>
-            </select>
+        <div class="d-flex flex-row flex-wrap gap-3 align-items-center">
+            <div class="flex-fill">
+                <div class="input-group">
+                    <span class="input-group-text" style="font-size: 2rem;" data-bs-toggle="tooltip" title="Select the language you will speak">🙊</span>
+                    <select id="spokenLanguageSelect" class="form-select" data-bs-toggle="tooltip" title="Choose your spoken language">
+                        <option value="ru-RU">Русский</option>
+                        <option value="uk-UA">Українська</option>
+                        <option value="en-US">English</option>
+                        <option value="de-DE">Deutsch</option>
+                        <option value="sk-SK">Slovenčina</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex-fill">
+                <div class="input-group">
+                    <span class="input-group-text" style="font-size: 2rem;" data-bs-toggle="tooltip" title="Select the language for response">🙉</span>
+                    <select id="languageSelect" class="form-select" data-bs-toggle="tooltip" title="Choose the language for playback">
+                        <option value="ru-RU">Русский</option>
+                        <option value="uk-UA">Українська</option>
+                        <option value="en-US">English</option>
+                        <option value="de-DE">Deutsch</option>
+                        <option value="sk-SK">Slovenčina</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button id="text_with_chatgpt" class="btn btn-success btn-lg recordButton" data-action="text_with_chatgpt"
+                        data-bs-toggle="tooltip" title="Send text to ChatGPT">
+                    <span class="d-flex justify-content-center align-items-center w-100 h-100" style="font-size: 2rem;">✍</span>
+                </button>
+                <button id="speak_with_chatgpt" class="btn btn-warning btn-lg recordButton" data-action="speak_with_chatgpt"
+                        data-bs-toggle="tooltip" title="Speak with ChatGPT">
+                    <span class="d-flex justify-content-center align-items-center w-100 h-100" style="font-size: 2rem;">😃</span>
+                </button>
+                <button id="speak_with_chatgpt_hd" class="btn btn-info btn-lg recordButton" data-action="speak_with_chatgpt_hd"
+                        data-bs-toggle="tooltip" title="Speak with HD Audio">
+                    <span class="d-flex justify-content-center align-items-center w-100 h-100" style="font-size: 2rem;">😁</span>
+                </button>
+                <button id="stop_playback" class="btn btn-danger btn-lg" data-action="stop_playback" disabled
+                        data-bs-toggle="tooltip" title="Stop playback">
+                    <span class="d-flex justify-content-center align-items-center w-100 h-100" style="font-size: 2rem;">🛑</span>
+                </button>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="languageSelect" class="form-label">Select the playback language:</label>
-            <select id="languageSelect" class="form-select">
-                <option value="ru-RU">Russian</option>
-                <option value="uk-UA">Ukrainian</option>
-                <option value="en-US">English</option>
-                <option value="de-DE">German</option>
-                <option value="sk-SK">Slovak</option>
-            </select>
-        </div>
-        <div class="d-flex flex-column gap-3">
-            <button id="text_with_chatgpt" class="btn btn-success btn-lg recordButton" data-action="text_with_chatgpt">Chat with ChatGpt (текст)</button>
-            <button id="speak_with_chatgpt" class="btn btn-warning btn-lg recordButton" data-action="speak_with_chatgpt">Chat with ChatGpt</button>
-            <button id="speak_with_chatgpt_hd" class="btn btn-info btn-lg recordButton" data-action="speak_with_chatgpt_hd">Chat with ChatGpt HD</button>
-            <button id="stop_playback" class="btn btn-danger btn-lg" data-action="stop_playback" disabled>Остановить воспроизведение</button>
+
+        <!-- Блок для вывода ошибок -->
+        <div id="errorMessages" class="mb-3" style="color: red; display: none;">
+            <div id="errorLine"></div>
         </div>
 
         <div class="chats scroll-y me-n5 pe-5 h-300px h-lg-auto mt-4" style="max-height: 800px; overflow-y: auto;">
@@ -42,6 +74,57 @@
 @section('footerScripts')
     <script>
         $(document).ready(function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, {
+                    trigger: 'hover'  // Этот параметр позволяет тултипу появляться при наведении и исчезать при отведении
+                });
+            });
+
+            const SPOKEN_LANGUAGE_KEY = 'spokenLanguage';
+            const PLAYBACK_LANGUAGE_KEY = 'playbackLanguage';
+
+            // Блок для отображения ошибок
+            const errorLine = $('#errorLine');
+
+            // Функция для отображения ошибок
+            function showError(message) {
+                console.log('Отображение ошибки:', message);  // Лог ошибки в консоль
+                $('#errorMessages').show();  // Показываем блок
+                $('#errorLine').text(message);  // Устанавливаем текст ошибки
+                console.log('Ошибка должна быть показана');  // Дополнительное сообщение для отладки
+            }
+
+
+            // Функция для скрытия ошибок
+            function hideError() {
+                errorLine.text('');
+                $('#errorMessages').hide();
+            }
+
+            // Загрузка значений из localStorage при загрузке страницы
+            const savedSpokenLanguage = localStorage.getItem(SPOKEN_LANGUAGE_KEY);
+            const savedPlaybackLanguage = localStorage.getItem(PLAYBACK_LANGUAGE_KEY);
+
+            if (savedSpokenLanguage) {
+                $('#spokenLanguageSelect').val(savedSpokenLanguage);
+            }
+
+            if (savedPlaybackLanguage) {
+                $('#languageSelect').val(savedPlaybackLanguage);
+            }
+
+            // Сохранение значений в localStorage при изменении селектов
+            $('#spokenLanguageSelect').on('change', function () {
+                const selectedSpokenLanguage = $(this).val();
+                localStorage.setItem(SPOKEN_LANGUAGE_KEY, selectedSpokenLanguage);
+            });
+
+            $('#languageSelect').on('change', function () {
+                const selectedPlaybackLanguage = $(this).val();
+                localStorage.setItem(PLAYBACK_LANGUAGE_KEY, selectedPlaybackLanguage);
+            });
+
             let isListening = false;
             let recognition;
             let voices = [];
@@ -59,16 +142,17 @@
                 recognition.maxAlternatives = 5;
 
                 recognition.onstart = function () {
+                    hideError(); // Скрываем ошибки при старте записи
                     console.log('Началась запись');
                 };
 
                 recognition.onresult = function (event) {
-                    if(isSpeaking === false) {
-                        const transcript = event.results[event.resultIndex][0].transcript.trim(); // Удаляем лишние пробелы
+                    if (isSpeaking === false) {
+                        const transcript = event.results[event.resultIndex][0].transcript.trim();
                         console.log('Распознанный текст: ', transcript);
 
                         if (transcript.length < 3) {
-                            console.log('Распознанный текст слишком короткий, запрос не будет отправлен.');
+                            showError('Распознанный текст слишком короткий, запрос не будет отправлен.');
                             return; // Не отправляем запрос
                         }
 
@@ -81,7 +165,7 @@
                             navigator.clipboard.writeText(transcript).then(function () {
                                 console.log('Текст успешно скопирован в буфер обмена.');
                             }).catch(function (err) {
-                                console.log('Документ не в фокусе, пропускаем копирование в буфер обмена.');
+                                showError('Ошибка копирования в буфер обмена.');
                             });
                         }
 
@@ -92,7 +176,12 @@
 
                 recognition.onerror = function (event) {
                     console.error('Ошибка распознавания: ', event.error);
+                    setTimeout(() => {
+                        showError('Ошибка распознавания: ' + event.error);
+                    }, 100);  // Небольшая задержка для исключения возможных конфликтов
                 };
+
+
 
                 recognition.onend = function () {
                     if (isListening && !isSpeaking) {
@@ -100,6 +189,7 @@
                         try {
                             recognition.start();
                         } catch (e) {
+                            showError("Ошибка при перезапуске распознавания.");
                             console.error("Ошибка при перезапуске:", e);
                         }
                     } else {
@@ -107,7 +197,7 @@
                     }
                 };
             } else {
-                alert("Ваш браузер не поддерживает Web Speech API для автоматической записи.");
+                showError("Ваш браузер не поддерживает Web Speech API для автоматической записи.");
             }
 
             // Клик по кнопке для отправки текста без озвучивания
@@ -149,11 +239,12 @@
                                 recognition.start();
                                 isListening = true;
                                 $(button).data('original-text', $(button).html());
-                                $(button).html('🕗 Listening...');
+                                $(button).html('<span class="d-flex justify-content-center align-items-center w-100 h-100" style="font-size: 2rem;">🕗</span>');
                             } else {
-                                console.log('Не могу запустить распознавание, идет озвучивание.');
+                                showError('Не могу запустить распознавание, идет озвучивание.');
                             }
                         } catch (e) {
+                            showError('Ошибка при запуске распознавания.');
                             console.log('Ошибка при запуске распознавания:', e);
                         }
                     }
@@ -181,6 +272,7 @@
                         handleServerResponse(response, action);
                     },
                     error: function (xhr, status, error) {
+                        showError("Ошибка при отправке данных на сервер.");
                         console.error("Ошибка при отправке данных на сервер: ", error);
                     }
                 });
@@ -295,6 +387,10 @@
                     if (isListening && !isSpeaking) { // Проверка состояния перед запуском
                         recognition.start(); // Возобновляем распознавание
                     }
+                };
+                utterance.onerror = function(event) {
+                    showError('Ошибка при озвучивании.');
+                    console.error('Ошибка при озвучивании:', event);
                 };
             }
 
