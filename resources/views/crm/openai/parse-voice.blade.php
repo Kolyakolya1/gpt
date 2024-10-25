@@ -1,19 +1,24 @@
 @extends('crm.layout')
 @section('headerStyles')
-<style>
-    #errorMessages {
-        display: block !important;
-        visibility: visible !important;
-        color: red;
-        font-size: 1.5rem;
-    }
-</style>
+    <style>
+        #errorMessages {
+            display: block !important;
+            visibility: visible !important;
+            color: red;
+            font-size: 1.5rem;
+        }
+        .container {
+            max-width: 100vw;
+            overflow-x: hidden;
+            padding-left: 20px; /* Добавляем отступ слева */
+        }
+    </style>
 @endsection
 
 @section('content')
     <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
-    <div class="container mt-4">
+    <div class="container mt-4 d-flex flex-column" style="height: 100vh;">
         <div class="d-flex flex-row flex-wrap gap-3 align-items-center">
             <div class="flex-fill">
                 <div class="input-group">
@@ -61,12 +66,12 @@
             </div>
         </div>
 
-        <!-- Блок для вывода ошибок -->
-        <div id="errorMessages" class="mb-3" style="color: red; display: none;">
-            <div id="errorLine"></div>
+        <div class="chats flex-grow-1 scroll-y me-n5 pe-5 mt-4" style="max-height: calc(100vh - 200px); overflow-y: auto;">
         </div>
 
-        <div class="chats scroll-y me-n5 pe-5 h-300px h-lg-auto mt-4" style="max-height: 800px; overflow-y: auto;">
+        <!-- Блок для вывода ошибок -->
+        <div id="errorMessages" class="mb-3 ms-auto" style="color: red;">
+            <div id="errorLine"></div>
         </div>
     </div>
 @endsection
@@ -132,6 +137,7 @@
             let groupIndex = 0;
             let currentAudio = null;
             let isSpeaking = false;
+            let textVoice = null;
 
             // Проверка поддержки Web Speech API
             if ('webkitSpeechRecognition' in window) {
@@ -358,7 +364,9 @@
 
             // Воспроизведение текста с помощью Web Speech API
             function speakText(text, button, lang = 'ru-RU') {
-                console.log('Начало озвучивания текста:', text);
+                if(textVoice === text){
+                    return;
+                }
                 if (voices.length === 0) {
                     window.speechSynthesis.onvoiceschanged = function () {
                         voices = window.speechSynthesis.getVoices();
@@ -366,7 +374,8 @@
                     };
                     return;
                 }
-
+                console.log('Начало озвучивания текста:', text);
+                textVoice = text;
                 const utterance = new SpeechSynthesisUtterance(text);
                 let selectedVoice = voices.find(voice => voice.lang === lang) || voices.find(voice => voice.lang.startsWith('ru')) || voices[0];
 
@@ -385,7 +394,11 @@
                     $('#stop_playback').prop('disabled', true); // Деактивируем кнопку после окончания
                     isSpeaking = false; // Включаем обратно распознавание
                     if (isListening && !isSpeaking) { // Проверка состояния перед запуском
-                        recognition.start(); // Возобновляем распознавание
+                        try {
+                            recognition.start();
+                        } catch (e) {
+                            console.log("Распознавание уже запущено:", e);
+                        }
                     }
                 };
                 utterance.onerror = function(event) {
