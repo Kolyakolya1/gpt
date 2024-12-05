@@ -29,6 +29,7 @@
                         <option value="en-US">English</option>
                         <option value="de-DE">Deutsch</option>
                         <option value="sk-SK">Slovenčina</option>
+                        <option value="ro-RO">Romanian</option>
                     </select>
                 </div>
             </div>
@@ -42,6 +43,7 @@
                         <option value="en-US">English</option>
                         <option value="de-DE">Deutsch</option>
                         <option value="sk-SK">Slovenčina</option>
+                        <option value="ro-RO">Romanian</option>
                     </select>
                 </div>
             </div>

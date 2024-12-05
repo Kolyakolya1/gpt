@@ -51,6 +51,8 @@ class AiController extends Controller
                     return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Beantworte die gestellte Frage auf Deutsch:');
                 } elseif ($playbackLanguage == 'sk-SK') {
                     return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Odpovedzte na položenú otázku po slovensky:');
+                } elseif ($playbackLanguage == 'ro-RO') {
+                    return $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Răspunde la întrebarea pusă în română:');
                 }
             }elseif ($type == 'speak_with_chatgpt_hd') {
                 if ($playbackLanguage == 'ru-RU') {
@@ -67,6 +69,9 @@ class AiController extends Controller
                     return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
                 } elseif ($playbackLanguage == 'sk-SK') {
                     $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Odpovedzte na položenú otázku po slovensky:');
+                    return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
+                } elseif ($playbackLanguage == 'ro-RO') {
+                    $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Răspunde la întrebarea pusă în română:');
                     return $this->generateHdResponse($type, $transcription, $response, $playbackLanguage);
                 }
             }
