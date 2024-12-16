@@ -147,7 +147,8 @@ class AiController extends Controller
         $playbackLanguage = 'ro-RO';
 
         $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Дай детальний розбір речення із перекладом на українську мову:', 500);
-        return '<pre>' . $response->getData()->text . '</pre>';
+
+        return '<div style="white-space: pre-wrap; word-wrap: break-word;">' . $response->getData()->text . '</div>';
 
     }
 
