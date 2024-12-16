@@ -148,7 +148,24 @@ class AiController extends Controller
 
         $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Дай детальний розбір речення із перекладом на українську мову:', 500);
 
-        return '<div style="white-space: pre-wrap; word-wrap: break-word;">' . $response->getData()->text . '</div>';
+        return '<div style="
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            line-height: 1.1;
+            color: #ffffff;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            margin: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
+            ' . str_replace("\n", '<br style="margin: 0; padding: 0;">', e($response->getData()->text)) . '
+        </div>';
+
+
+
 
     }
 
