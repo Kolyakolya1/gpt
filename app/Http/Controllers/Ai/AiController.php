@@ -83,14 +83,14 @@ class AiController extends Controller
     }
 
     // Генерация ответа от ChatGPT
-    private function generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, $promptPrefix)
+    private function generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, $promptPrefix, $max_tokens = 300 )
     {
         $body = [
             'model' => 'gpt-4o-mini',
             'messages' => [
                 ['role' => 'user', 'content' => $promptPrefix . ' ' . $transcription]
             ],
-            'max_tokens' => 300
+            'max_tokens' => $max_tokens
         ];
         $response = $this->client->post('chat/completions', ['json' => $body]);
         $data = json_decode($response->getBody()->getContents(), true);
@@ -137,6 +137,18 @@ class AiController extends Controller
     public function parseVoice()
     {
         return view('crm.openai.parse-voice');
+    }
+
+    public function romanian()
+    {
+        $transcription = request()->rom;
+        $type = 'speak_with_chatgpt';
+        $inputLanguage = 'ro-RO';
+        $playbackLanguage = 'ro-RO';
+
+        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Дай детальний розбір речення із перекладом на українську мову:', 500);
+        return '<pre>' . $response->getData()->text . '</pre>';
+
     }
 
 }
