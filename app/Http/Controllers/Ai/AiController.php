@@ -141,32 +141,26 @@ class AiController extends Controller
 
     public function romanian()
     {
-        $transcription = request()->rom;
+        $anki_text = request()->rom;
         $type = 'speak_with_chatgpt';
         $inputLanguage = 'ro-RO';
         $playbackLanguage = 'ro-RO';
 
-        $response = $this->generateGptResponse($type, $transcription, $inputLanguage, $playbackLanguage, 'Дай детальний розбір речення із перекладом на українську мову:', 500);
+        $response = $this->generateGptResponse($type, $anki_text, $inputLanguage, $playbackLanguage, 'Ти викладач румунської, а я тільки починаю її вчити. Дай детальний розбір речення із перекладом на українську мову:', 500);
+        $text = $response->getData()->text ?? '';
+        return view('crm.openai.answer', compact('text', 'anki_text'));
+    }
 
-        return '<div style="
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: Arial, sans-serif;
-            font-size: 18px;
-            line-height: 1.1;
-            color: #ffffff;
-            background-color: #1e1e1e;
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 5px;
-            margin: 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);">
-            ' . str_replace("\n", '<br style="margin: 0; padding: 0;">', e($response->getData()->text)) . '
-        </div>';
+    public function detail(Request $request)
+    {
+        $question = $request->input('question');
+        $type = 'speak_with_chatgpt';
+        $inputLanguage = 'ro-RO';
+        $playbackLanguage = 'ro-RO';
 
-
-
-
+        $response = $this->generateGptResponse($type, $question, $inputLanguage, $playbackLanguage, 'Ти викладач румунської, а я тільки починаю її вчити. ', 500);
+        $text = $response->getData()->text ?? '';
+        return view('crm.openai.detail', compact('text'));
     }
 
 }
